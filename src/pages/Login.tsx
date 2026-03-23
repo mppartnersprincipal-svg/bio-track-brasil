@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useAuth } from '@/context/AuthContext'
-import { lovable } from '@/integrations/lovable/index'
+import { supabase } from '@/integrations/supabase/client'
 
 export default function Login() {
   const navigate = useNavigate()
@@ -126,8 +126,9 @@ export default function Login() {
             type="button"
             variant="outline"
             onClick={async () => {
-              const { error } = await lovable.auth.signInWithOAuth('google', {
-                redirect_uri: window.location.origin,
+              const { error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: { redirectTo: window.location.origin },
               })
               if (error) setError('Erro ao entrar com Google.')
             }}
