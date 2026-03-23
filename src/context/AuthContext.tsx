@@ -39,7 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
         const u = {
           id: session.user.id,
@@ -47,7 +47,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           user_metadata: session.user.user_metadata,
         }
         setUser(u)
-        await checkSubscription(u.id)
+        const { data } = await supabase
+          .from('profiles')
+          .select('subscription_status')
+          .eq('user_id', u.id)
+          .single()
+        const isSubscribed = data?.subscription_status === 'active'
+        setSubscribed(isSubscribed)
+
+        // Redirecionar após OAuth (Google)
+        if (event === 'SIGNED_IN' && window.location.pathname === '/') {
+          window.location.href = isSubscribed ? '/dashboard' : '/checkout'
+        }
       } else {
         setUser(null)
         setSubscribed(false)
