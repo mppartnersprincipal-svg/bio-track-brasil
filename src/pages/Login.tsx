@@ -157,9 +157,6 @@ export default function Login() {
             Esqueceu a senha?
           </p>
 
-          <div className="text-xs text-gray-muted mt-8 text-center bg-brand-cream-light rounded-lg p-3">
-            🧪 Demo: demo@biotrack.com.br / demo123
-          </div>
         </form>
       </div>
     </div>
