@@ -28,11 +28,11 @@ export default function Login() {
     setError('')
     setLoading(true)
     const result = await signIn(email, password)
+    setLoading(false)
     if (result.error) {
       setError(result.error)
-      setLoading(false)
     }
-    // Não navega aqui — o useEffect acima cuida do redirecionamento
+    // Redirecionamento feito pelo useEffect quando user/subscribed forem resolvidos
   }
 
   return (
