@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Activity, Eye, EyeOff, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -9,24 +9,30 @@ import { supabase } from '@/integrations/supabase/client'
 
 export default function Login() {
   const navigate = useNavigate()
-  const { signIn } = useAuth()
+  const { signIn, user, subscribed, loading: authLoading } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPass, setShowPass] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  // Redireciona automaticamente quando auth state for resolvido
+  useEffect(() => {
+    if (!authLoading && user) {
+      navigate(subscribed ? '/dashboard' : '/checkout', { replace: true })
+    }
+  }, [user, subscribed, authLoading, navigate])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setLoading(true)
     const result = await signIn(email, password)
-    setLoading(false)
     if (result.error) {
       setError(result.error)
-    } else {
-      navigate('/dashboard')
+      setLoading(false)
     }
+    // Não navega aqui — o useEffect acima cuida do redirecionamento
   }
 
   return (
