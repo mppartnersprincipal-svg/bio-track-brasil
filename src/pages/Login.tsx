@@ -6,17 +6,18 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useAuth } from '@/context/AuthContext'
 import { supabase } from '@/integrations/supabase/client'
+import { toast } from 'sonner'
 
 export default function Login() {
   const navigate = useNavigate()
-  const { signIn, user, subscribed, loading: authLoading } = useAuth()
+  const { user, subscribed, loading: authLoading } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPass, setShowPass] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  // Redireciona automaticamente quando auth state for resolvido
+  // Redireciona se já estiver logado
   useEffect(() => {
     if (!authLoading && user) {
       navigate(subscribed ? '/dashboard' : '/checkout', { replace: true })
@@ -27,12 +28,27 @@ export default function Login() {
     e.preventDefault()
     setError('')
     setLoading(true)
-    const result = await signIn(email, password)
-    setLoading(false)
-    if (result.error) {
-      setError(result.error)
+
+    const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password })
+
+    if (authError) {
+      toast.error('E-mail ou senha incorretos.')
+      setError(authError.message)
+      setLoading(false)
+      return
     }
-    // Redirecionamento feito pelo useEffect quando user/subscribed forem resolvidos
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('subscription_status')
+      .eq('user_id', data.user.id)
+      .single()
+
+    const name = data.user?.user_metadata?.full_name || 'Usuário'
+    toast.success(`Bem-vindo de volta, ${name}! 🎉`)
+
+    setLoading(false)
+    navigate(profile?.subscription_status === 'active' ? '/dashboard' : '/checkout', { replace: true })
   }
 
   return (
